@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MonthlyStats, Alert, AppView, SimulationState, UserSettings } from './types';
 import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
@@ -6,7 +6,6 @@ import { SmartAdvisor } from './components/SmartAdvisor';
 import { Settings } from './components/Settings';
 import { PlumberList } from './components/PlumberList';
 import { SplashScreen } from './components/SplashScreen';
-import { Onboarding } from './components/Onboarding';
 
 import {
   HomeIcon,
@@ -63,7 +62,6 @@ const Sidebar = ({
   currentView,
   setCurrentView,
   isMobileMenuOpen,
-  setIsMobileMenuOpen,
 }: any) => (
   <aside
     className={`fixed md:static top-0 right-0 h-full w-64 bg-white border-l z-30 transition-transform
@@ -83,7 +81,13 @@ const Sidebar = ({
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+
+  const [userSettings, setUserSettings] = useState<UserSettings>({
+    notificationsEnabled: true,
+    leakSensitivity: 'medium',
+    dailyLimit: 500,
+  });
+
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(500);
@@ -98,7 +102,7 @@ const App: React.FC = () => {
   const leakTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 2500);
+    const t = setTimeout(() => setShowSplash(false), 2000);
     return () => clearTimeout(t);
   }, []);
 
@@ -155,7 +159,7 @@ const App: React.FC = () => {
       case AppView.SETTINGS:
         return (
           <Settings
-            userSettings={userSettings!}
+            userSettings={userSettings}
             onUpdateSettings={setUserSettings}
             dailyGoal={dailyGoal}
             onUpdateGoal={setDailyGoal}
@@ -168,14 +172,15 @@ const App: React.FC = () => {
             simulationState={simState}
             dailyGoal={dailyGoal}
             alerts={alerts}
-            toggleLeak={() => setSimState((s) => ({ ...s, isLeaking: !s.isLeaking }))}
+            toggleLeak={() =>
+              setSimState((s) => ({ ...s, isLeaking: !s.isLeaking }))
+            }
           />
         );
     }
   };
 
   if (showSplash) return <SplashScreen />;
-  if (!userSettings) return <Onboarding onComplete={setUserSettings} />;
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -191,7 +196,6 @@ const App: React.FC = () => {
         currentView={currentView}
         setCurrentView={setCurrentView}
         isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
       <main className="flex-1 p-6 mt-14 md:mt-0 overflow-y-auto">
