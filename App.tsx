@@ -58,9 +58,24 @@ const Sidebar = ({ currentView, setCurrentView, isMobileMenuOpen, setIsMobileMen
 
     return (
         <aside className={`
-            fixed inset-y-0 right-0 z-20 w-64 bg-white border-l border-slate-100 shadow-xl md:shadow-none transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:block
+            fixed inset-y-0 right-0 z-50 w-64 bg-white border-l border-slate-100 shadow-xl md:shadow-none transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:block
             ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
         `}>
+            {/* Mobile Sidebar Header (Visible only on mobile inside sidebar) */}
+            <div className="flex md:hidden items-center justify-between p-4 border-b border-slate-50 mb-2">
+                 <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-water-400 to-water-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177A7.547 7.547 0 016.648 6.61a.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                    <span className="font-bold text-slate-800">قطرة</span>
+                 </div>
+                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                     <XMarkIcon className="w-6 h-6" />
+                 </button>
+            </div>
+
             <div className="p-8 hidden md:flex items-center gap-3 mb-6">
             <div className="w-12 h-12 bg-gradient-to-br from-water-400 to-water-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-water-200 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
@@ -353,7 +368,7 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden animate-fade-in">
       
       {/* Mobile Header */}
-      <div className="md:hidden bg-white p-4 flex justify-between items-center shadow-sm z-30 relative">
+      <div className={`md:hidden bg-white p-4 flex justify-between items-center shadow-sm z-30 relative transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-water-400 to-water-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -366,7 +381,7 @@ const AppContent: React.FC = () => {
             </div>
         </div>
         <button onClick={handleMobileMenuToggle}>
-          {isMobileMenuOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
+          <Bars3Icon className="w-6 h-6" />
         </button>
       </div>
 
@@ -431,7 +446,7 @@ const AppContent: React.FC = () => {
       {/* Overlay for Mobile Menu */}
       {isMobileMenuOpen && (
         <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-10 md:hidden transition-opacity duration-300"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
         ></div>
       )}
@@ -442,7 +457,7 @@ const AppContent: React.FC = () => {
 // Error Boundary Component
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -451,15 +466,12 @@ interface ErrorBoundaryState {
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null
-    };
-  }
+  state: ErrorBoundaryState = {
+    hasError: false,
+    error: null
+  };
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
