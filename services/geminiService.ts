@@ -1,5 +1,2 @@
-
-// تم إيقاف خدمة الذكاء الاصطناعي واستبدالها بمنطق محلي في SmartAdvisor
-// AI Service deprecated.
-export const analyzeWaterUsage = async () => { return ""; };
-export const getEfficiencyTips = async () => { return []; };
+// This service has been removed as AI features are no longer used.
+export {};

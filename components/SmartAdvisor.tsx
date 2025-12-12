@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SimulationState, MonthlyStats, UserSettings } from '../types';
-import { SparklesIcon, LightBulbIcon } from '@heroicons/react/24/solid';
+import { ClipboardDocumentCheckIcon, LightBulbIcon } from '@heroicons/react/24/solid';
 
 interface SmartAdvisorProps {
   simulationState: SimulationState;
@@ -53,10 +53,10 @@ export const SmartAdvisor: React.FC<SmartAdvisorProps> = React.memo(({ simulatio
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-slate-800 flex items-center justify-center gap-3">
-            <SparklesIcon className="w-8 h-8 text-amber-400" />
-            المستشار الذكي
+            <ClipboardDocumentCheckIcon className="w-8 h-8 text-water-600" />
+            النصائح والإرشادات
         </h2>
-        <p className="text-slate-500 mt-2">نظام تحليل ذكي لمساعدتك في الحفاظ على المياه.</p>
+        <p className="text-slate-500 mt-2">تحليل حالة استهلاك المياه ونصائح دورية للتوفير.</p>
       </div>
 
       {/* Main Insight Card */}
@@ -64,11 +64,11 @@ export const SmartAdvisor: React.FC<SmartAdvisorProps> = React.memo(({ simulatio
         <div className="bg-white/10 backdrop-blur-md rounded-[22px] p-8 h-full text-white">
             <div className="flex items-start gap-4">
                 <div className="bg-white/20 p-3 rounded-full shrink-0">
-                    <SparklesIcon className="w-8 h-8 text-white" />
+                    <ClipboardDocumentCheckIcon className="w-8 h-8 text-white" />
                 </div>
                 <div>
                     <h3 className="text-xl font-bold mb-2">
-                        {simulationState.isLeaking ? 'تنبيه عاجل' : 'تحليل الاستهلاك'}
+                        {simulationState.isLeaking ? 'تنبيه عاجل' : 'حالة النظام'}
                     </h3>
                     <p className="text-lg leading-relaxed font-medium opacity-95">
                         "{advice}"

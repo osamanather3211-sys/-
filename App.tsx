@@ -12,7 +12,7 @@ import {
   HomeIcon, 
   ChartBarIcon, 
   Cog6ToothIcon, 
-  SparklesIcon,
+  ClipboardDocumentCheckIcon,
   Bars3Icon,
   XMarkIcon,
   WrenchScrewdriverIcon
@@ -74,7 +74,7 @@ const Sidebar = ({ currentView, setCurrentView, isMobileMenuOpen, setIsMobileMen
                 <NavItem view={AppView.DASHBOARD} label="الرئيسية" icon={HomeIcon} isActive={currentView === AppView.DASHBOARD} onClick={handleNavClick} />
                 <NavItem view={AppView.ANALYTICS} label="التقارير" icon={ChartBarIcon} isActive={currentView === AppView.ANALYTICS} onClick={handleNavClick} />
                 <NavItem view={AppView.PLUMBERS} label="السباكين" icon={WrenchScrewdriverIcon} isActive={currentView === AppView.PLUMBERS} onClick={handleNavClick} />
-                <NavItem view={AppView.ADVISOR} label="المستشار الذكي" icon={SparklesIcon} isActive={currentView === AppView.ADVISOR} onClick={handleNavClick} />
+                <NavItem view={AppView.ADVISOR} label="النصائح والإرشادات" icon={ClipboardDocumentCheckIcon} isActive={currentView === AppView.ADVISOR} onClick={handleNavClick} />
                 <NavItem view={AppView.SETTINGS} label="الإعدادات" icon={Cog6ToothIcon} isActive={currentView === AppView.SETTINGS} onClick={handleNavClick} />
             </nav>
             
@@ -303,7 +303,7 @@ const App: React.FC = () => {
                     {currentView === AppView.DASHBOARD && `مرحباً، ${userSettings.name}`}
                     {currentView === AppView.ANALYTICS && 'تحليل الاستهلاك'}
                     {currentView === AppView.PLUMBERS && 'خدمات الصيانة'}
-                    {currentView === AppView.ADVISOR && 'المستشار الذكي'}
+                    {currentView === AppView.ADVISOR && 'النصائح والإرشادات'}
                     {currentView === AppView.SETTINGS && 'الإعدادات'}
                 </h2>
                 <p className="text-slate-500 text-sm mt-1">
