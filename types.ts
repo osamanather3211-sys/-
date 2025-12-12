@@ -21,6 +21,7 @@ export interface Alert {
 
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
+  TANKS = 'TANKS',
   ANALYTICS = 'ANALYTICS',
   SETTINGS = 'SETTINGS',
   ADVISOR = 'ADVISOR',

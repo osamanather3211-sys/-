@@ -8,6 +8,7 @@ import { PlumberList } from './components/PlumberList';
 import { SplashScreen } from './components/SplashScreen';
 import { Onboarding } from './components/Onboarding';
 import { LandingPage } from './components/LandingPage';
+import { TankMonitor } from './components/TankMonitor';
 import { playSfx } from './utils/audio';
 import { 
   HomeIcon, 
@@ -16,7 +17,8 @@ import {
   ClipboardDocumentCheckIcon,
   Bars3Icon,
   XMarkIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  ArchiveBoxIcon
 } from '@heroicons/react/24/outline';
 
 // Mock Data
@@ -73,6 +75,7 @@ const Sidebar = ({ currentView, setCurrentView, isMobileMenuOpen, setIsMobileMen
 
             <nav className="px-4 space-y-2 mt-4 md:mt-0">
                 <NavItem view={AppView.DASHBOARD} label="الرئيسية" icon={HomeIcon} isActive={currentView === AppView.DASHBOARD} onClick={handleNavClick} />
+                <NavItem view={AppView.TANKS} label="الخزانات" icon={ArchiveBoxIcon} isActive={currentView === AppView.TANKS} onClick={handleNavClick} />
                 <NavItem view={AppView.ANALYTICS} label="التقارير" icon={ChartBarIcon} isActive={currentView === AppView.ANALYTICS} onClick={handleNavClick} />
                 <NavItem view={AppView.PLUMBERS} label="السباكين" icon={WrenchScrewdriverIcon} isActive={currentView === AppView.PLUMBERS} onClick={handleNavClick} />
                 <NavItem view={AppView.ADVISOR} label="النصائح والإرشادات" icon={ClipboardDocumentCheckIcon} isActive={currentView === AppView.ADVISOR} onClick={handleNavClick} />
@@ -265,6 +268,8 @@ const AppContent: React.FC = () => {
             return <PlumberList />;
         case AppView.ADVISOR:
             return <SmartAdvisor simulationState={simState} history={MOCK_HISTORY} userSettings={userSettings} />;
+        case AppView.TANKS:
+            return <TankMonitor userSettings={userSettings} simulationState={simState} />;
         case AppView.SETTINGS:
             return userSettings ? (
                 <Settings 
@@ -345,6 +350,7 @@ const AppContent: React.FC = () => {
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">
                     {currentView === AppView.DASHBOARD && userSettings && `مرحباً، ${userSettings.name}`}
+                    {currentView === AppView.TANKS && 'مراقبة مستوى الخزانات'}
                     {currentView === AppView.ANALYTICS && 'تحليل الاستهلاك'}
                     {currentView === AppView.PLUMBERS && 'خدمات الصيانة'}
                     {currentView === AppView.ADVISOR && 'النصائح والإرشادات'}
