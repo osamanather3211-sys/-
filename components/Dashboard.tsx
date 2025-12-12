@@ -5,7 +5,8 @@ import { playSfx } from '../utils/audio';
 import { 
   ExclamationTriangleIcon, 
   CheckCircleIcon, 
-  ArrowTrendingUpIcon 
+  ArrowTrendingUpIcon,
+  CpuChipIcon
 } from '@heroicons/react/24/outline';
 
 interface DashboardProps {
@@ -28,24 +29,29 @@ export const Dashboard: React.FC<DashboardProps> = React.memo(({
     <div className="space-y-6 animate-fade-in">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Flow Rate Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden transition-transform hover:scale-[1.02] duration-300">
+        {/* Flow Rate Card - Device Look */}
+        <div className="bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-700 relative overflow-hidden transition-transform hover:scale-[1.02] duration-300 text-white">
           <div className="relative z-10">
-            <h3 className="text-slate-500 text-sm font-medium mb-1">التدفق الحالي</h3>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-slate-800">
+            <div className="flex justify-between items-start mb-4">
+                <h3 className="text-slate-400 text-sm font-medium flex items-center gap-2">
+                    <CpuChipIcon className="w-4 h-4" />
+                    جهاز قياس التدفق
+                </h3>
+                <span className={`w-2 h-2 rounded-full ${simulationState.currentFlowRate > 0 ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></span>
+            </div>
+            
+            <div className="flex items-baseline gap-2 font-mono">
+              <span className={`text-5xl font-bold tracking-tighter ${simulationState.currentFlowRate > 0 ? 'text-green-400' : 'text-slate-500'}`}>
                 {simulationState.currentFlowRate.toFixed(1)}
               </span>
-              <span className="text-sm text-slate-400">لتر/دقيقة</span>
+              <span className="text-sm text-slate-400">L/min</span>
             </div>
-            {simulationState.currentFlowRate > 0 && (
-               <div className="mt-2 text-xs text-water-600 font-medium flex items-center gap-1">
-                 <span className="w-2 h-2 rounded-full bg-water-500 animate-pulse"></span>
-                 المياه تتدفق الآن
-               </div>
-            )}
+            <div className="mt-4 text-xs text-slate-500 font-mono border-t border-slate-700 pt-2">
+                 Device ID: QT-8842-X
+            </div>
           </div>
-          <div className="absolute -right-6 -bottom-6 text-water-50 opacity-10">
+          {/* Background decoration to look like water/data */}
+          <div className="absolute -right-6 -bottom-6 text-slate-800 opacity-50">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-32 h-32">
               <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177A7.547 7.547 0 016.648 6.61a.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
             </svg>

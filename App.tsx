@@ -7,6 +7,7 @@ import { Settings } from './components/Settings';
 import { PlumberList } from './components/PlumberList';
 import { SplashScreen } from './components/SplashScreen';
 import { Onboarding } from './components/Onboarding';
+import { LandingPage } from './components/LandingPage';
 import { playSfx } from './utils/audio';
 import { 
   HomeIcon, 
@@ -91,13 +92,20 @@ const Sidebar = ({ currentView, setCurrentView, isMobileMenuOpen, setIsMobileMen
     );
 };
 
-const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
+// Application Flow States
+type AppState = 'SPLASH' | 'LANDING' | 'ONBOARDING' | 'APP';
+
+const AppContent: React.FC = () => {
+  const [appState, setAppState] = useState<AppState>('SPLASH');
   
   // Initialize state from LocalStorage
   const [userSettings, setUserSettings] = useState<UserSettings | null>(() => {
-    const saved = localStorage.getItem('qatra_settings');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('qatra_settings');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
   const [dailyGoal, setDailyGoal] = useState(500); // Liters
@@ -112,15 +120,20 @@ const App: React.FC = () => {
   });
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const leakTimerRef = useRef<number | null>(null);
+  const leakTimerRef = useRef<any>(null);
   const LEAK_THRESHOLD_TIME = 5000;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 4000); // Reduced slightly for faster access
+      // After splash, decide where to go
+      if (userSettings) {
+        setAppState('APP');
+      } else {
+        setAppState('LANDING');
+      }
+    }, 4000); 
     return () => clearTimeout(timer);
-  }, []);
+  }, [userSettings]);
 
   // Update LocalStorage when settings change
   const handleUpdateSettings = (newSettings: UserSettings) => {
@@ -131,20 +144,21 @@ const App: React.FC = () => {
 
   const handleRegistrationComplete = (settings: UserSettings) => {
       handleUpdateSettings(settings);
+      setAppState('APP');
   };
 
   const handleLogout = () => {
       playSfx('error');
       localStorage.removeItem('qatra_settings');
       setUserSettings(null);
-      // Logout now directs to Onboarding (via render logic)
       setCurrentView(AppView.DASHBOARD);
+      setAppState('LANDING');
   };
 
   // Simulation Logic - Running frequently
   useEffect(() => {
     // Only run simulation if we are in the app mode
-    if (showSplash || !userSettings) return;
+    if (appState !== 'APP' || !userSettings) return;
 
     const interval = setInterval(() => {
       setSimState(prev => {
@@ -163,15 +177,13 @@ const App: React.FC = () => {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [showSplash, userSettings]);
+  }, [appState, userSettings]);
 
   // Leak Detection & Alert Logic
   useEffect(() => {
-    // Only detect if in app mode
-    if (showSplash || !userSettings) return;
+    if (appState !== 'APP' || !userSettings) return;
 
     const { currentFlowRate, isLeaking, totalToday } = simState;
-    let newAlertToAdd: Alert | null = null;
 
     // Detect Leak
     if (currentFlowRate > 0 && currentFlowRate < 10) {
@@ -224,7 +236,7 @@ const App: React.FC = () => {
         });
     }
 
-  }, [simState.currentFlowRate, simState.isLeaking, Math.floor(simState.totalToday), dailyGoal, showSplash, userSettings]);
+  }, [simState.currentFlowRate, simState.isLeaking, Math.floor(simState.totalToday), dailyGoal, appState, userSettings]);
 
   const toggleLeak = useCallback(() => {
     playSfx('click');
@@ -286,16 +298,18 @@ const App: React.FC = () => {
     }
   };
 
-  if (showSplash) {
+  if (appState === 'SPLASH') {
     return <SplashScreen />;
   }
 
-  // If no settings, show Onboarding immediately (No Landing Page)
-  if (!userSettings) {
+  if (appState === 'LANDING') {
+    return <LandingPage onEnterApp={() => setAppState('ONBOARDING')} />;
+  }
+
+  if (appState === 'ONBOARDING') {
     return <Onboarding onComplete={handleRegistrationComplete} />;
   }
 
-  // Case 3: Logged in (userSettings exist) -> Show Main App
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden animate-fade-in">
       
@@ -330,14 +344,14 @@ const App: React.FC = () => {
         <header className="hidden md:flex justify-between items-center mb-8">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">
-                    {currentView === AppView.DASHBOARD && `مرحباً، ${userSettings.name}`}
+                    {currentView === AppView.DASHBOARD && userSettings && `مرحباً، ${userSettings.name}`}
                     {currentView === AppView.ANALYTICS && 'تحليل الاستهلاك'}
                     {currentView === AppView.PLUMBERS && 'خدمات الصيانة'}
                     {currentView === AppView.ADVISOR && 'النصائح والإرشادات'}
                     {currentView === AppView.SETTINGS && 'الإعدادات'}
                 </h2>
                 <p className="text-slate-500 text-sm mt-1">
-                    {userSettings.tankCount} خزانات • يوم التعبئة: {userSettings.refillDay}
+                    {userSettings && userSettings.tankCount} خزانات • يوم التعبئة: {userSettings && userSettings.refillDay}
                 </p>
             </div>
             <div className="flex items-center gap-4">
@@ -369,5 +383,60 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
+            <h1 className="text-xl font-bold text-red-600 mb-2">عذراً، حدث خطأ غير متوقع</h1>
+            <p className="text-slate-500 mb-6">واجه التطبيق مشكلة في العرض. يرجى محاولة تحديث الصفحة.</p>
+            
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors"
+            >
+              تحديث الصفحة
+            </button>
+            
+            <div className="mt-8 pt-4 border-t border-slate-100">
+               <button 
+                 onClick={() => { localStorage.clear(); window.location.reload(); }}
+                 className="text-xs text-slate-400 hover:text-red-500 underline"
+               >
+                 إعادة ضبط التطبيق (حذف البيانات)
+               </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const App: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  );
+}
 
 export default App;
