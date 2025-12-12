@@ -8,7 +8,8 @@ import {
   MoonIcon, 
   PencilSquareIcon,
   CheckIcon,
-  AdjustmentsHorizontalIcon
+  AdjustmentsHorizontalIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
 interface SettingsProps {
@@ -16,9 +17,10 @@ interface SettingsProps {
   onUpdateSettings: (newSettings: UserSettings) => void;
   dailyGoal: number;
   onUpdateGoal: (goal: number) => void;
+  onLogout: () => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ userSettings, onUpdateSettings, dailyGoal, onUpdateGoal }) => {
+export const Settings: React.FC<SettingsProps> = ({ userSettings, onUpdateSettings, dailyGoal, onUpdateGoal, onLogout }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(userSettings);
   const [goal, setGoal] = useState(dailyGoal);
@@ -28,7 +30,6 @@ export const Settings: React.FC<SettingsProps> = ({ userSettings, onUpdateSettin
     onUpdateSettings(formData);
     onUpdateGoal(goal);
     setIsEditing(false);
-    playSfx('success');
   };
 
   const handleEditToggle = () => {
@@ -148,7 +149,7 @@ export const Settings: React.FC<SettingsProps> = ({ userSettings, onUpdateSettin
               </div>
           </div>
           {goal !== dailyGoal && !isEditing && (
-              <button onClick={() => { onUpdateGoal(goal); playSfx('success'); }} className="mt-4 text-sm text-water-600 font-bold hover:underline">
+              <button onClick={() => { onUpdateGoal(goal); }} className="mt-4 text-sm text-water-600 font-bold hover:underline">
                   حفظ الهدف الجديد
               </button>
           )}
@@ -190,8 +191,14 @@ export const Settings: React.FC<SettingsProps> = ({ userSettings, onUpdateSettin
       </div>
 
       <div className="text-center pt-8 pb-4">
-          <p className="text-xs text-slate-300">رقم الإصدار 1.0.2</p>
-          <button className="text-red-400 text-sm mt-2 hover:text-red-500">تسجيل الخروج</button>
+          <p className="text-xs text-slate-300 mb-4">رقم الإصدار 1.0.2</p>
+          <button 
+            onClick={onLogout}
+            className="text-red-500 bg-red-50 border border-red-100 px-6 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2 mx-auto"
+          >
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              تسجيل الخروج
+          </button>
       </div>
 
     </div>
