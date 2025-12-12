@@ -6,42 +6,9 @@ export const SplashScreen: React.FC = () => {
       {/* Container for the animation */}
       <div className="relative w-full h-full flex flex-col items-center justify-center -mt-20">
         
-        {/* Cloud - 3D Design */}
-        <div className="absolute top-[18%] z-20 animate-cloud-float">
-             <svg width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                   <filter id="cloud-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="15" stdDeviation="12" floodColor="#334155" floodOpacity="0.2"/>
-                   </filter>
-                   <linearGradient id="cloud-grad" x1="140" y1="0" x2="140" y2="200" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stopColor="#FFFFFF"/>
-                      <stop offset="1" stopColor="#E2E8F0"/>
-                   </linearGradient>
-                   <radialGradient id="cloud-highlight" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 60) rotate(90) scale(60)">
-                      <stop stopColor="white" stopOpacity="0.9"/>
-                      <stop offset="1" stopColor="white" stopOpacity="0"/>
-                   </radialGradient>
-                </defs>
-                
-                <g filter="url(#cloud-shadow)">
-                   {/* Cloud Puffs Composition for 3D effect */}
-                   <circle cx="90" cy="110" r="50" fill="url(#cloud-grad)"/>
-                   <circle cx="190" cy="110" r="50" fill="url(#cloud-grad)"/>
-                   <circle cx="140" cy="90" r="60" fill="url(#cloud-grad)"/>
-                   <rect x="90" y="110" width="100" height="50" fill="url(#cloud-grad)"/>
-                   
-                   {/* Bottom flattener (soft curve) */}
-                   <path d="M70 145 Q 140 165 210 145 L 210 110 L 70 110 Z" fill="url(#cloud-grad)"/>
-                   
-                   {/* Top Highlight to simulate light source from above */}
-                   <circle cx="140" cy="90" r="50" fill="url(#cloud-highlight)"/>
-                </g>
-             </svg>
-        </div>
-
-        {/* The Falling Drop - 3D Effect */}
-        <div className="absolute top-[28%] animate-drop-fall z-10">
-           <svg width="60" height="90" viewBox="0 0 100 150">
+        {/* The Falling Drop - 3D Effect - Centered and Larger */}
+        <div className="absolute top-[35%] animate-drop-fall z-10">
+           <svg width="80" height="120" viewBox="0 0 100 150">
              <defs>
                <radialGradient id="dropGrad" cx="30%" cy="30%" r="70%">
                  <stop offset="0%" stopColor="#e0f2fe" />

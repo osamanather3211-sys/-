@@ -92,11 +92,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             <div className="relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-water-100 to-purple-100 rounded-full blur-3xl opacity-60 animate-pulse-slow"></div>
-                <img 
-                    src="https://cdn-icons-png.flaticon.com/512/4246/4246154.png" 
-                    alt="App Preview" 
-                    className="relative z-10 w-full max-w-md mx-auto drop-shadow-2xl transform hover:scale-105 transition-transform duration-500"
-                />
+                
+                {/* 3D Water Drop SVG to replace image */}
+                <svg viewBox="0 0 512 512" className="relative z-10 w-full max-w-md mx-auto drop-shadow-2xl transform hover:scale-105 transition-transform duration-500">
+                    <defs>
+                        <linearGradient id="heroDropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#38bdf8" />
+                            <stop offset="100%" stopColor="#0284c7" />
+                        </linearGradient>
+                        <filter id="heroGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="15" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+                    <g filter="url(#heroGlow)">
+                        <path 
+                            d="M256 64C256 64 64 220 64 336C64 442 150 512 256 512C362 512 448 442 448 336C448 220 256 64 256 64Z" 
+                            fill="url(#heroDropGrad)" 
+                        />
+                        <ellipse cx="320" cy="180" rx="40" ry="80" fill="white" fillOpacity="0.1" transform="rotate(-30 320 180)" />
+                        <path 
+                            d="M180 280 Q 180 200 256 130" 
+                            stroke="white" 
+                            strokeWidth="12" 
+                            strokeLinecap="round" 
+                            fill="none" 
+                            opacity="0.3"
+                        />
+                    </g>
+                </svg>
             </div>
         </div>
       </section>
