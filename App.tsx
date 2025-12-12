@@ -115,6 +115,9 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // State for leak mode: 'none' | 'minor' | 'major'
+  const [leakMode, setLeakMode] = useState<'none' | 'minor' | 'major'>('none');
+
   // Simulation State
   const [simState, setSimState] = useState<SimulationState>({
     currentFlowRate: 0,
@@ -165,22 +168,39 @@ const AppContent: React.FC = () => {
 
     const interval = setInterval(() => {
       setSimState(prev => {
-        let baseFlow = prev.isLeaking ? 2.5 : 0;
-        // Only add random noise if leaking or occasionally
-        const randomSpike = (prev.isLeaking || Math.random() > 0.95) ? Math.random() * (prev.isLeaking ? 15 : 2) : 0;
-        const newFlow = baseFlow + randomSpike;
+        let baseFlow = 0;
+        
+        // Strict logic for flow based on leakMode
+        if (leakMode === 'minor') {
+            baseFlow = 4.5; // تسريب بسيط (أقل من 10)
+        } else if (leakMode === 'major') {
+            baseFlow = 25.0; // تسريب قوي (أكثر من 10)
+        } else {
+            baseFlow = 0;
+        }
+
+        // Add small random noise only if leaking to make it look realistic, but keep it within range
+        let randomSpike = 0;
+        if (leakMode === 'minor') {
+            randomSpike = (Math.random() - 0.5) * 1.5; // +/- 0.75 -> Range [3.75 - 5.25]
+        } else if (leakMode === 'major') {
+            randomSpike = (Math.random() - 0.5) * 5.0; // +/- 2.5 -> Range [22.5 - 27.5]
+        }
+
+        const newFlow = baseFlow > 0 ? baseFlow + randomSpike : 0;
         const addedAmount = (newFlow / 60) * 0.5;
         
         return {
           ...prev,
-          currentFlowRate: newFlow > 0.5 ? newFlow : 0, // Noise gate
+          currentFlowRate: Math.max(0, newFlow),
+          isLeaking: leakMode !== 'none',
           totalToday: prev.totalToday + addedAmount
         };
       });
     }, 500);
 
     return () => clearInterval(interval);
-  }, [appState, userSettings]);
+  }, [appState, userSettings, leakMode]);
 
   // Leak Detection & Alert Logic
   useEffect(() => {
@@ -189,34 +209,38 @@ const AppContent: React.FC = () => {
     const { currentFlowRate, isLeaking, totalToday } = simState;
 
     // Detect Leak
-    if (currentFlowRate > 0 && currentFlowRate < 10) {
+    if (isLeaking && currentFlowRate > 0) {
       if (!leakTimerRef.current) {
         leakTimerRef.current = setTimeout(() => {
-            if (isLeaking) { 
-                 const isLarge = currentFlowRate > 5;
-                 setAlerts(prev => {
-                    if (prev.some(a => a.type === 'leak' && a.active)) return prev;
-                    playSfx('alert');
-                    return [{
-                        id: Date.now().toString(),
-                        type: 'leak',
-                        message: isLarge ? 'تدفق عالي مستمر! (احتمال تسريب خزان)' : 'تدفق منخفض مستمر (احتمال تسريب مواسير)',
-                        timestamp: new Date(),
-                        active: true
-                    }, ...prev];
-                 });
-            }
+             // Only trigger if still leaking after threshold
+             const isLarge = currentFlowRate > 10; // Consistent with SmartAdvisor threshold
+             setAlerts(prev => {
+                // Remove existing leak alerts to avoid duplicates or conflicting alerts
+                const filtered = prev.filter(a => a.type !== 'leak');
+                
+                playSfx('alert');
+                return [{
+                    id: Date.now().toString(),
+                    type: 'leak',
+                    message: isLarge ? 'تدفق عالي جداً! (خطر فيضان)' : 'تسريب مستمر مكتشف (افحص السيفون)',
+                    timestamp: new Date(),
+                    active: true
+                }, ...filtered];
+             });
         }, LEAK_THRESHOLD_TIME);
       }
-    } else if (currentFlowRate === 0) {
+    } else {
+      // No leak or flow stopped
       if (leakTimerRef.current) {
         clearTimeout(leakTimerRef.current);
         leakTimerRef.current = null;
       }
+      
       if (!isLeaking) {
          setAlerts(prev => {
              const hasActiveLeak = prev.some(a => a.type === 'leak' && a.active);
              if (hasActiveLeak) {
+                 // Mark leaks as inactive
                  return prev.map(a => a.type === 'leak' ? {...a, active: false} : a);
              }
              return prev;
@@ -241,18 +265,14 @@ const AppContent: React.FC = () => {
 
   }, [simState.currentFlowRate, simState.isLeaking, Math.floor(simState.totalToday), dailyGoal, appState, userSettings]);
 
-  const toggleLeak = useCallback(() => {
+  const toggleMinorLeak = useCallback(() => {
     playSfx('click');
-    setSimState(prev => ({ ...prev, isLeaking: !prev.isLeaking }));
+    setLeakMode(prev => prev === 'minor' ? 'none' : 'minor');
   }, []);
 
-  const toggleLargeLeak = useCallback(() => {
+  const toggleMajorLeak = useCallback(() => {
      playSfx('click');
-     setSimState(prev => {
-        const isHighFlow = prev.currentFlowRate > 10;
-        if (isHighFlow) return { ...prev, isLeaking: false, currentFlowRate: 0 };
-        return { ...prev, isLeaking: true, currentFlowRate: 15 }; 
-     });
+     setLeakMode(prev => prev === 'major' ? 'none' : 'major');
   }, []);
 
   const handleMobileMenuToggle = () => {
@@ -285,18 +305,32 @@ const AppContent: React.FC = () => {
             return (
                 <div className="space-y-6">
                     <div className="flex gap-2 justify-end">
-                    <button onClick={toggleLeak} className="text-xs text-slate-400 hover:text-red-500 bg-white px-2 py-1 rounded shadow-sm transition-colors">
-                        {simState.isLeaking ? '[إيقاف المحاكاة]' : '[محاكاة تسريب صغير]'}
+                    <button 
+                        onClick={toggleMinorLeak} 
+                        className={`text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium border ${
+                            leakMode === 'minor' 
+                            ? 'bg-orange-100 text-orange-700 border-orange-200 ring-2 ring-orange-100' 
+                            : 'bg-white text-slate-500 hover:text-orange-600 border-slate-200'
+                        }`}
+                    >
+                        {leakMode === 'minor' ? '● إيقاف التسريب البسيط' : '○ محاكاة تسريب بسيط'}
                     </button>
-                    <button onClick={toggleLargeLeak} className="text-xs text-slate-400 hover:text-red-500 bg-white px-2 py-1 rounded shadow-sm transition-colors">
-                        [محاكاة تسريب خزان]
+                    <button 
+                        onClick={toggleMajorLeak} 
+                        className={`text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium border ${
+                            leakMode === 'major' 
+                            ? 'bg-red-100 text-red-700 border-red-200 ring-2 ring-red-100' 
+                            : 'bg-white text-slate-500 hover:text-red-600 border-slate-200'
+                        }`}
+                    >
+                        {leakMode === 'major' ? '● إيقاف التسريب القوي' : '○ محاكاة تسريب قوي'}
                     </button>
                     </div>
                     <Dashboard 
                         simulationState={simState} 
                         dailyGoal={dailyGoal}
                         alerts={alerts}
-                        toggleLeak={toggleLeak}
+                        toggleLeak={toggleMinorLeak}
                     />
                 </div>
             );
@@ -361,10 +395,25 @@ const AppContent: React.FC = () => {
                 </p>
             </div>
             <div className="flex items-center gap-4">
-                 <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
-                     <span className={`w-2 h-2 rounded-full ${simState.isLeaking ? 'bg-red-500 animate-ping' : 'bg-green-500'}`}></span>
-                     <span className="text-sm font-medium text-slate-600">
-                        {simState.isLeaking ? 'تم اكتشاف تسريب' : 'النظام يعمل بكفاءة'}
+                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm transition-all duration-300 ${
+                     simState.isLeaking 
+                     ? (leakMode === 'major' ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200')
+                     : 'bg-white border-slate-100'
+                 }`}>
+                     <span className={`w-2 h-2 rounded-full ${
+                         simState.isLeaking 
+                         ? (leakMode === 'major' ? 'bg-red-600 animate-ping' : 'bg-orange-500 animate-pulse') 
+                         : 'bg-green-500'
+                     }`}></span>
+                     <span className={`text-sm font-medium ${
+                         simState.isLeaking
+                         ? (leakMode === 'major' ? 'text-red-700' : 'text-orange-700')
+                         : 'text-slate-600'
+                     }`}>
+                        {simState.isLeaking 
+                          ? (leakMode === 'major' ? 'تسريب قوي جداً' : 'تسريب بسيط مستمر')
+                          : 'النظام يعمل بكفاءة'
+                        }
                      </span>
                  </div>
                  <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-xl">
@@ -391,10 +440,23 @@ const AppContent: React.FC = () => {
 };
 
 // Error Boundary Component
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
-  constructor(props: { children: React.ReactNode }) {
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: any;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = {
+      hasError: false,
+      error: null
+    };
   }
 
   static getDerivedStateFromError(error: any) {
